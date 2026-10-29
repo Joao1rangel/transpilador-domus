@@ -36,6 +36,10 @@ static void erro_lexico(const char *msg) {
 }
 %}
 
+%option noyywrap
+%option nounput
+%option noinput
+%option never-interactive
 
 %x COMENTARIO
 
@@ -114,10 +118,6 @@ static void erro_lexico(const char *msg) {
                     }
 
 %%
-
-int yywrap() {
-    return 1;
-}
 
 int main(int argc, char **argv) {
     const char *nome_arquivo = "testes/ExemploDomus.txt";
