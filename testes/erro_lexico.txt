@@ -1,0 +1,6 @@
+sensor temperatura: analogico(porta 1).
+x <- 10 @.
+2abc <- 5 #.
+escrever(x + abc).
+/* comentario que nunca fecha
+escrever(x).

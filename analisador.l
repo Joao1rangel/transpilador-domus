@@ -5,6 +5,8 @@
 
 int linha_atual = 1;
 int mostrar_tokens = 0;
+int linha_comentario = 0;
+int erros_lexicos = 0;
 
 #define YY_DECL int getToken()
 
@@ -13,16 +15,27 @@ int mostrar_tokens = 0;
             printf("Token: %-30s | Valor: %-20s | Linha: %d\n", descricao, yytext, linha_atual); \
         return codigo; \
     } while (0)
+
+static void erro_lexico(const char *msg) {
+    printf("[ERRO LEXICO] Linha %d: %s\n", linha_atual, msg);
+    erros_lexicos++;
+}
 %}
 
 
 %x COMENTARIO
 
 %%
-"/*"                { BEGIN(COMENTARIO); }
+"/*"                { linha_comentario = linha_atual; BEGIN(COMENTARIO); }
 <COMENTARIO>"\n"    { linha_atual++; }
 <COMENTARIO>"*/"    { BEGIN(INITIAL); }
 <COMENTARIO>.       { }
+<COMENTARIO><<EOF>> {
+                        printf("[ERRO LEXICO] Linha %d: comentario aberto com /* e nunca fechado\n", linha_comentario);
+                        erros_lexicos++;
+                        BEGIN(INITIAL);
+                        return FIM_ARQUIVO;
+                    }
 
 "sensor"            { TOKEN(SENSOR, "Palavra-chave"); }
 "atuador"           { TOKEN(ATUADOR, "Palavra-chave"); }
@@ -55,13 +68,24 @@ int mostrar_tokens = 0;
 "("                 { TOKEN(ABRE_PAR, "Abre parenteses"); }
 ")"                 { TOKEN(FECHA_PAR, "Fecha parenteses"); }
 
+[0-9]+[a-zA-Z_][a-zA-Z0-9_]* {
+                        char msg[256];
+                        snprintf(msg, sizeof(msg), "identificador invalido '%s' (nao pode comecar com numero)", yytext);
+                        erro_lexico(msg);
+                        TOKEN(IDENTIFICADOR, "Identificador invalido");
+                    }
+
 [0-9]+              { TOKEN(NUMERO, "Numero inteiro"); }
 [a-zA-Z_][a-zA-Z0-9_]* { TOKEN(IDENTIFICADOR, "Identificador"); }
 
 \n                  { linha_atual++; }
 [ \t\r]+            { }
 
-.                   { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Simbolo Desconhecido", yytext, linha_atual); return 1; }
+.                   {
+                        char msg[64];
+                        snprintf(msg, sizeof(msg), "simbolo desconhecido '%s'", yytext);
+                        erro_lexico(msg);
+                    }
 <<EOF>>             {
                         if (mostrar_tokens)
                             printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Fim de arquivo", "FDA", linha_atual);
@@ -107,6 +131,7 @@ int main(int argc, char **argv) {
     }
 
     printf("\nTotal de tokens reconhecidos: %d\n", total);
+    printf("Erros lexicos: %d\n", erros_lexicos);
     printf("Final do Analisador Lexico.\n");
     fclose(arquivo);
     return 0;
