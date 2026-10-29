@@ -27,4 +27,11 @@ enum Token {
     NUMERO, IDENTIFICADOR
 };
 
+typedef union {
+    int numero;
+    char *texto;
+} YYSTYPE;
+
+extern YYSTYPE yylval;
+
 #endif
