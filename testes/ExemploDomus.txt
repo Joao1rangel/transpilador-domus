@@ -1,0 +1,21 @@
+/* Programa de teste */
+sensor temperatura: analogico(porta 1).
+sensor claridade:digital(porta 2).
+/* multiplas linhas decomentario */
+atuador cortina: digital (porta 3).
+atuador ventilador:analogico(porta 4).
+
+ler(x).
+w <- (6+8)*(5-7).
+se (((temperatura < 30))) entao
+      cortina <- 1.
+    ventilador <- 80.
+senao
+      cortina <- 0.
+    ventilador <- 0.
+fim_se .
+se claridade>20 entao
+cortina <- 0.fim_se.
+asd <- 8 / x.
+asd <- asd + 2 .
+escrever(asd*2) .
