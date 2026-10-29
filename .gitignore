@@ -1,0 +1,11 @@
+# gerados pelo Flex e pelo Bison
+lex.yy.c
+parser.tab.c
+parser.tab.h
+
+# executaveis
+*.exe
+
+# codigo C gerado pelo transpilador
+saida.c
+*.out
