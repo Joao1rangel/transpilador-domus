@@ -7,6 +7,10 @@
 int linha_atual = 1;
 
 #define YY_DECL int getToken()
+#define TOKEN(codigo, descricao) do { \
+    printf("Token: %-30s | Valor: %-20s | Linha: %d\n", descricao, yytext, linha_atual); \
+    return (codigo); \
+} while (0)
 %}
 
 %x COMENTARIO
@@ -17,39 +21,45 @@ int linha_atual = 1;
 <COMENTARIO>"*/"    { BEGIN(INITIAL); }
 <COMENTARIO>.       { }
 
-"sensor"            { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return SENSOR; }
-"atuador"           { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return ATUADOR; }
-"porta"             { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return PORTA; }
-"analogico"         { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return ANALOGICO; }
-"digital"           { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return DIGITAL; }
-"se"                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return SE; }
-"entao"             { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return ENTAO; }
-"senao"             { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return SENAO; }
-"fim_se"            { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return FIM_SE; }
-"enquanto"          { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return ENQUANTO; }
-"fim_enquanto"      { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return FIM_ENQUANTO; }
-"ler"               { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return LER; }
-"escrever"          { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Palavra-chave", yytext, linha_atual); return ESCREVER; }
 
-"+"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Operacao de soma", yytext, linha_atual); return MAIS; }
-"-"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Operacao de subtracao", yytext, linha_atual); return MENOS; }
-"*"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Operacao de multiplicacao", yytext, linha_atual); return VEZES; }
-"/"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Operacao de divisao", yytext, linha_atual); return DIVIDIDO; }
-"<"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Menor que", yytext, linha_atual); return MENOR; }
-"<="                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Menor ou igual", yytext, linha_atual); return MENOR_IGUAL; }
-">"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Maior que", yytext, linha_atual); return MAIOR; }
-">="                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Maior ou igual", yytext, linha_atual); return MAIOR_IGUAL; }
-"=="                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Comparacao igual", yytext, linha_atual); return IGUAL; }
-"!="                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Comparacao diferente", yytext, linha_atual); return DIFERENTE; }
-"<-"                { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Operador de atribuicao", yytext, linha_atual); return ATRIBUICAO; }
-"."                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Separador de comandos", yytext, linha_atual); return PONTO; }
-":"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Separador de tipo", yytext, linha_atual); return DOIS_PONTOS; }
-","                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Separador de declaracoes", yytext, linha_atual); return VIRGULA; }
-"("                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Abre bloco", yytext, linha_atual); return ABRE_PAR; }
-")"                 { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Fecha bloco", yytext, linha_atual); return FECHA_PAR; }
+"sensor"       { TOKEN(SENSOR, "Palavra-chave"); }
+"atuador"      { TOKEN(ATUADOR, "Palavra-chave"); }
+"porta"        { TOKEN(PORTA, "Palavra-chave"); }
+"analogico"    { TOKEN(ANALOGICO, "Palavra-chave"); }
+"digital"      { TOKEN(DIGITAL, "Palavra-chave"); }
+"se"           { TOKEN(SE, "Palavra-chave"); }
+"entao"        { TOKEN(ENTAO, "Palavra-chave"); }
+"senao"        { TOKEN(SENAO, "Palavra-chave"); }
+"fim_se"       { TOKEN(FIM_SE, "Palavra-chave"); }
+"enquanto"     { TOKEN(ENQUANTO, "Palavra-chave"); }
+"fim_enquanto" { TOKEN(FIM_ENQUANTO, "Palavra-chave"); }
+"ler"          { TOKEN(LER, "Palavra-chave"); }
+"escrever"     { TOKEN(ESCREVER, "Palavra-chave"); }
 
-[0-9]+              { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Numero inteiro", yytext, linha_atual); return NUMERO; }
-[a-zA-Z_][a-zA-Z0-9_]* { printf("Token: %-30s | Valor: %-20s | Linha: %d\n", "Identificador", yytext, linha_atual); return IDENTIFICADOR; }
+
+
+"+"     { TOKEN(MAIS, "Operacao de soma"); }
+"-"     { TOKEN(MENOS, "Operacao de subtracao"); }
+"*"     { TOKEN(VEZES, "Operacao de multiplicacao"); }
+"/"     { TOKEN(DIVIDIDO, "Operacao de divisao"); }
+"<"     { TOKEN(MENOR, "Menor que"); }
+"<="    { TOKEN(MENOR_IGUAL, "Menor ou igual"); }
+">"     { TOKEN(MAIOR, "Maior que"); }
+">="    { TOKEN(MAIOR_IGUAL, "Maior ou igual"); }
+"=="    { TOKEN(IGUAL, "Comparacao igual"); }
+"!="    { TOKEN(DIFERENTE, "Comparacao diferente"); }
+"<-"    { TOKEN(ATRIBUICAO, "Operador de atribuicao"); }
+"."     { TOKEN(PONTO, "Separador de comandos"); }
+":"     { TOKEN(DOIS_PONTOS, "Separador de tipo"); }
+","     { TOKEN(VIRGULA, "Separador de declaracoes"); }
+"("     { TOKEN(ABRE_PAR, "Abre parenteses"); }
+")"     { TOKEN(FECHA_PAR, "Fecha parenteses"); }
+
+
+
+[0-9]+                  { TOKEN(NUMERO, "Numero inteiro"); }
+[a-zA-Z_][a-zA-Z0-9_]*  { TOKEN(IDENTIFICADOR, "Identificador"); }
+
 
 \n                  { linha_atual++; }
 [ \t\r]+            { }
