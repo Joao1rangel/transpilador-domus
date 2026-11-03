@@ -1,9 +1,3 @@
-
-/*
- * tokens.h - codigos dos tokens da linguagem Domus
- * Cada token tem um numero unico. Comeca em 258 (padrao do Bison:
- * de 0 a 255 ficam reservados para caracteres soltos).
- */
 #ifndef TOKENS_H
 #define TOKENS_H
 
