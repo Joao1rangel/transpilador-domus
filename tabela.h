@@ -23,6 +23,7 @@ typedef struct Simbolo {
 } Simbolo;
 
 Simbolo *ts_buscar(const char *nome);
+Simbolo *ts_buscar_porta(int porta);
 Simbolo *ts_inserir(const char *nome, Categoria categoria, Tipo tipo, int porta, int linha);
 void ts_imprimir(void);
 

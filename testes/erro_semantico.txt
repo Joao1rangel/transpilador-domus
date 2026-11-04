@@ -1,0 +1,10 @@
+
+sensor temperatura: analogico(porta 1).
+sensor umidade: analogico(porta 1).
+atuador lampada: digital(porta 2), temperatura: digital(porta 5).
+temperatura <- 25.
+ler(temperatura).
+x <- lampada + 1.
+escrever(y).
+z <- z + 1.
+lampada <- 1.

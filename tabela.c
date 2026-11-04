@@ -16,6 +16,16 @@ Simbolo *ts_buscar(const char *nome) {
     return NULL;
 }
 
+Simbolo *ts_buscar_porta(int porta) {
+    Simbolo *s;
+    for (s = inicio; s != NULL; s = s->prox) {
+        if (s->categoria != CAT_VARIAVEL && s->porta == porta) {
+            return s;
+        }
+    }
+    return NULL;
+}
+
 Simbolo *ts_inserir(const char *nome, Categoria categoria, Tipo tipo, int porta, int linha) {
     Simbolo *s = (Simbolo *) malloc(sizeof(Simbolo));
     if (s == NULL) {

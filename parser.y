@@ -1,3 +1,4 @@
+
 %{
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +12,54 @@ extern int mostrar_tokens;
 extern int erros_lexicos;
 
 int erros_sintaticos = 0;
+int erros_semanticos = 0;
+
+static const char *nome_categoria(Categoria c) {
+    if (c == CAT_SENSOR) return "sensor";
+    if (c == CAT_ATUADOR) return "atuador";
+    return "variavel";
+}
+
+static void declarar(const char *nome, Categoria categoria, Tipo tipo, int porta, int linha) {
+    Simbolo *s = ts_buscar(nome);
+    if (s != NULL) {
+        printf("[ERRO SEMANTICO] Linha %d: '%s' ja foi declarado na linha %d como %s\n",
+               linha, nome, s->linha, nome_categoria(s->categoria));
+        erros_semanticos++;
+        return;
+    }
+    s = ts_buscar_porta(porta);
+    if (s != NULL) {
+        printf("[ERRO SEMANTICO] Linha %d: a porta %d ja esta sendo usada pelo %s '%s'\n",
+               linha, porta, nome_categoria(s->categoria), s->nome);
+        erros_semanticos++;
+    }
+    ts_inserir(nome, categoria, tipo, porta, linha);
+}
+
+static void atribuir(const char *nome, int linha) {
+    Simbolo *s = ts_buscar(nome);
+    if (s == NULL) {
+        ts_inserir(nome, CAT_VARIAVEL, TIPO_INTEIRO, -1, linha);
+    } else if (s->categoria == CAT_SENSOR) {
+        printf("[ERRO SEMANTICO] Linha %d: o sensor '%s' nao pode receber valor (sensor e somente leitura)\n",
+               linha, nome);
+        erros_semanticos++;
+    }
+}
+
+static void usar(const char *nome, int linha) {
+    Simbolo *s = ts_buscar(nome);
+    if (s == NULL) {
+        printf("[ERRO SEMANTICO] Linha %d: '%s' foi usado sem ter recebido valor antes\n",
+               linha, nome);
+        erros_semanticos++;
+    } else if (s->categoria == CAT_ATUADOR) {
+        printf("[ERRO SEMANTICO] Linha %d: o atuador '%s' nao pode ser lido (atuador e somente escrita)\n",
+               linha, nome);
+        erros_semanticos++;
+    }
+}
 %}
 
 %union {
@@ -66,7 +115,7 @@ lista_sensores
 
 sensor
     : IDENTIFICADOR DOIS_PONTOS tipo_sensor_atuador ABRE_PAR PORTA NUMERO FECHA_PAR
-        { ts_inserir($1, CAT_SENSOR, $3, $6, @1.first_line); }
+        { declarar($1, CAT_SENSOR, $3, $6, @1.first_line); }
     ;
 
 tipo_sensor_atuador
@@ -85,7 +134,7 @@ lista_atuadores
 
 atuador
     : IDENTIFICADOR DOIS_PONTOS tipo_sensor_atuador ABRE_PAR PORTA NUMERO FECHA_PAR
-        { ts_inserir($1, CAT_ATUADOR, $3, $6, @1.first_line); }
+        { declarar($1, CAT_ATUADOR, $3, $6, @1.first_line); }
     ;
 
 bloco
@@ -112,20 +161,12 @@ comando_enquanto
 
 comando_atribuicao
     : IDENTIFICADOR ATRIBUICAO expressao
-        {
-            if (ts_buscar($1) == NULL) {
-                ts_inserir($1, CAT_VARIAVEL, TIPO_INTEIRO, -1, @1.first_line);
-            }
-        }
+        { atribuir($1, @1.first_line); }
     ;
 
 comando_leitura
     : LER ABRE_PAR IDENTIFICADOR FECHA_PAR
-        {
-            if (ts_buscar($3) == NULL) {
-                ts_inserir($3, CAT_VARIAVEL, TIPO_INTEIRO, -1, @3.first_line);
-            }
-        }
+        { atribuir($3, @3.first_line); }
     ;
 
 comando_escrita
@@ -168,7 +209,7 @@ multi
 
 fator
     : ABRE_PAR expressao FECHA_PAR
-    | IDENTIFICADOR
+    | IDENTIFICADOR { usar($1, @1.first_line); }
     | NUMERO
     ;
 
@@ -233,9 +274,10 @@ int main(int argc, char **argv) {
 
     printf("\nErros lexicos: %d\n", erros_lexicos);
     printf("Erros sintaticos: %d\n", erros_sintaticos);
+    printf("Erros semanticos: %d\n", erros_semanticos);
 
-    if (resultado == 0 && erros_lexicos == 0) {
-        printf("Analise sintatica concluida: o programa esta correto.\n");
+    if (resultado == 0 && erros_lexicos == 0 && erros_semanticos == 0) {
+        printf("Analise concluida: o programa esta correto.\n");
         return 0;
     }
     printf("Analise NAO concluida: o programa tem erros.\n");
