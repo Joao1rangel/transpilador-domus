@@ -1,0 +1,5 @@
+sensor temperatura: analogico(porta 1).
+x <- 10.
+se x > 5
+    escrever(x).
+fim_se.

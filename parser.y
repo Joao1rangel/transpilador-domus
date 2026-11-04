@@ -186,3 +186,41 @@ void yyerror(const char *msg) {
     }
     printf("\n");
 }
+int main(int argc, char **argv) {
+    const char *nome_arquivo = "testes/ExemploDomus.txt";
+    FILE *arquivo;
+    int i, resultado;
+
+    for (i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-t") == 0) {
+            mostrar_tokens = 1;
+        } else {
+            nome_arquivo = argv[i];
+        }
+    }
+
+    arquivo = fopen(nome_arquivo, "r");
+    if (!arquivo) {
+        printf("Erro: nao foi possivel abrir o arquivo '%s'\n", nome_arquivo);
+        printf("Uso: %s [-t] arquivo_domus.txt\n", argv[0]);
+        return 1;
+    }
+
+    yyin = arquivo;
+
+    printf("Transpilador Domus\n");
+    printf("Arquivo: %s\n\n", nome_arquivo);
+
+    resultado = yyparse();
+    fclose(arquivo);
+
+    printf("\nErros lexicos: %d\n", erros_lexicos);
+    printf("Erros sintaticos: %d\n", erros_sintaticos);
+
+    if (resultado == 0 && erros_lexicos == 0) {
+        printf("Analise sintatica concluida: o programa esta correto.\n");
+        return 0;
+    }
+    printf("Analise NAO concluida: o programa tem erros.\n");
+    return 1;
+}

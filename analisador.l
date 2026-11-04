@@ -1,18 +1,15 @@
-
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "tokens.h"
+#include "parser.tab.h"
 
 int linha_atual = 1;
 int mostrar_tokens = 0;
 int linha_comentario = 0;
 int erros_lexicos = 0;
 
-YYSTYPE yylval;
-
-#define YY_DECL int getToken()
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = linha_atual;
 
 #define TOKEN(codigo, descricao) do { \
         if (mostrar_tokens) \
@@ -118,47 +115,3 @@ static void erro_lexico(const char *msg) {
                     }
 
 %%
-
-int main(int argc, char **argv) {
-    const char *nome_arquivo = "testes/ExemploDomus.txt";
-    FILE *arquivo;
-    int i, token, total = 0;
-    
-    for (i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-t") == 0) {
-            mostrar_tokens = 1;
-        } else {
-            nome_arquivo = argv[i];
-        }
-    }
-
-    arquivo = fopen(nome_arquivo, "r");
-    if (!arquivo) {
-        printf("Erro: nao foi possivel abrir o arquivo '%s'\n", nome_arquivo);
-        printf("Uso: %s [-t] arquivo_domus.txt\n", argv[0]);
-        return 1;
-    }
-
-    yyin = arquivo;
-
-    printf("Inicio do Analisador Lexico.\n");
-    printf("Arquivo: %s\n\n", nome_arquivo);
-
-    while ((token = getToken()) != FIM_ARQUIVO) {
-        total++;
-        if (mostrar_tokens) {
-            printf("Codigo retornado: %d\n", token);
-            if (token == NUMERO) {
-                printf("Valor do numero (yylval.numero): %d\n", yylval.numero);
-            } else if (token == IDENTIFICADOR) {
-                printf("Nome do identificador (yylval.texto): %s\n", yylval.texto);
-            }
-        }
-    }
-
-    printf("\nTotal de tokens reconhecidos: %d\n", total);
-    printf("Erros lexicos: %d\n", erros_lexicos);
-    printf("Final do Analisador Lexico.\n");
-    fclose(arquivo);
-    return 0;
-}
