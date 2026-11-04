@@ -1,4 +1,3 @@
-
 sensor temperatura: analogico(porta 1).
 sensor umidade: analogico(porta 1).
 atuador lampada: digital(porta 2), temperatura: digital(porta 5).
