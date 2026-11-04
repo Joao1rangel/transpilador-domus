@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include "tabela.h"
 
 int yylex(void);
 void yyerror(const char *msg);
@@ -33,6 +34,8 @@ int erros_sintaticos = 0;
 %token <numero> NUMERO "numero"
 %token <texto> IDENTIFICADOR "identificador"
 
+%type <numero> tipo_sensor_atuador
+
 %start programa
 
 %%
@@ -63,11 +66,12 @@ lista_sensores
 
 sensor
     : IDENTIFICADOR DOIS_PONTOS tipo_sensor_atuador ABRE_PAR PORTA NUMERO FECHA_PAR
+        { ts_inserir($1, CAT_SENSOR, $3, $6, @1.first_line); }
     ;
 
 tipo_sensor_atuador
-    : ANALOGICO
-    | DIGITAL
+    : ANALOGICO { $$ = TIPO_ANALOGICO; }
+    | DIGITAL   { $$ = TIPO_DIGITAL; }
     ;
 
 declaracao_atuador
@@ -81,6 +85,7 @@ lista_atuadores
 
 atuador
     : IDENTIFICADOR DOIS_PONTOS tipo_sensor_atuador ABRE_PAR PORTA NUMERO FECHA_PAR
+        { ts_inserir($1, CAT_ATUADOR, $3, $6, @1.first_line); }
     ;
 
 bloco
@@ -107,10 +112,20 @@ comando_enquanto
 
 comando_atribuicao
     : IDENTIFICADOR ATRIBUICAO expressao
+        {
+            if (ts_buscar($1) == NULL) {
+                ts_inserir($1, CAT_VARIAVEL, TIPO_INTEIRO, -1, @1.first_line);
+            }
+        }
     ;
 
 comando_leitura
     : LER ABRE_PAR IDENTIFICADOR FECHA_PAR
+        {
+            if (ts_buscar($3) == NULL) {
+                ts_inserir($3, CAT_VARIAVEL, TIPO_INTEIRO, -1, @3.first_line);
+            }
+        }
     ;
 
 comando_escrita
@@ -213,6 +228,8 @@ int main(int argc, char **argv) {
 
     resultado = yyparse();
     fclose(arquivo);
+
+    ts_imprimir();
 
     printf("\nErros lexicos: %d\n", erros_lexicos);
     printf("Erros sintaticos: %d\n", erros_sintaticos);
