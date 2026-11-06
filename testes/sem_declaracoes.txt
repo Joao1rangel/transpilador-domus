@@ -1,0 +1,3 @@
+ler(a).
+b <- a * 2.
+escrever(b).

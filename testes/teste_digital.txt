@@ -1,0 +1,8 @@
+sensor botao: digital(porta 1).
+atuador lampada: digital(porta 2).
+
+ler(x).
+lampada <- x.
+se botao == 1 entao
+    lampada <- 0.
+fim_se.
