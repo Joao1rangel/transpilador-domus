@@ -8,5 +8,3 @@ char *codigo_atribuicao(const char *nome, const char *expressao);
 int gerar_arquivo(const char *nome_arquivo, const char *corpo);
 
 #endif 
-
-// EAE JT TROPA DO EXPRODIIII O BUTÃO

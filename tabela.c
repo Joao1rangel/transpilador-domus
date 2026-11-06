@@ -53,6 +53,10 @@ Simbolo *ts_inserir(const char *nome, Categoria categoria, Tipo tipo, int porta,
     return s;
 }
 
+Simbolo *ts_primeiro(void) {
+    return inicio;
+}
+
 static const char *nome_categoria(Categoria c) {
     if (c == CAT_SENSOR) return "sensor";
     if (c == CAT_ATUADOR) return "atuador";
