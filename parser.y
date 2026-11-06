@@ -87,7 +87,7 @@ static void usar(const char *nome, int linha) {
 
 %type <numero> tipo_sensor_atuador
 %type <codigo> bloco comando comando_se comando_enquanto comando_atribuicao comando_leitura comando_escrita
-%type <codigo> expressao soma termo multi fator
+%type <codigo> expressao_logica op_relacional expressao soma termo multi fator
 
 %start programa
 
@@ -155,12 +155,15 @@ comando
     ;
 
 comando_se
-    : SE expressao_logica ENTAO bloco FIM_SE                 { $$ = juntar(""); }
-    | SE expressao_logica ENTAO bloco SENAO bloco FIM_SE     { $$ = juntar(""); }
+    : SE expressao_logica ENTAO bloco FIM_SE
+        { $$ = juntar("if (%s) {\n%s}\n", $2, indentar($4)); }
+    | SE expressao_logica ENTAO bloco SENAO bloco FIM_SE
+        { $$ = juntar("if (%s) {\n%s} else {\n%s}\n", $2, indentar($4), indentar($6)); }
     ;
 
 comando_enquanto
-    : ENQUANTO ABRE_PAR expressao_logica FECHA_PAR bloco FIM_ENQUANTO   { $$ = juntar(""); }
+    : ENQUANTO ABRE_PAR expressao_logica FECHA_PAR bloco FIM_ENQUANTO
+        { $$ = juntar("while (%s) {\n%s}\n", $3, indentar($5)); }
     ;
 
 comando_atribuicao
@@ -185,17 +188,17 @@ comando_escrita
     ;
 
 expressao_logica
-    : ABRE_PAR expressao_logica FECHA_PAR
-    | expressao op_relacional expressao
+    : ABRE_PAR expressao_logica FECHA_PAR { $$ = $2; }
+    | expressao op_relacional expressao   { $$ = juntar("%s %s %s", $1, $2, $3); }
     ;
 
 op_relacional
-    : MENOR
-    | MENOR_IGUAL
-    | MAIOR
-    | MAIOR_IGUAL
-    | IGUAL
-    | DIFERENTE
+    : MENOR       { $$ = juntar("<"); }
+    | MENOR_IGUAL { $$ = juntar("<="); }
+    | MAIOR       { $$ = juntar(">"); }
+    | MAIOR_IGUAL { $$ = juntar(">="); }
+    | IGUAL       { $$ = juntar("=="); }
+    | DIFERENTE   { $$ = juntar("!="); }
     ;
 
 expressao
