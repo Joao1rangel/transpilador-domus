@@ -62,7 +62,7 @@ char *indentar(const char *texto) {
 char *codigo_identificador(const char *nome) {
     Simbolo *s = ts_buscar(nome);
     if (s != NULL && s->categoria == CAT_SENSOR) {
-        return juntar("ler_sensor(\"%s\", %d)", s->nome, s->porta);
+        return juntar("ler_sensor(&%s, \"%s\", %d, %d)", s->nome, s->nome, s->porta, s->tipo == TIPO_DIGITAL);
     }
     return juntar("%s", nome);
 }
@@ -70,7 +70,7 @@ char *codigo_identificador(const char *nome) {
 char *codigo_atribuicao(const char *nome, const char *expressao) {
     Simbolo *s = ts_buscar(nome);
     if (s != NULL && s->categoria == CAT_ATUADOR) {
-        return juntar("acionar_atuador(\"%s\", %d, %s);\n", s->nome, s->porta, expressao);
+        return juntar("acionar_atuador(&%s, \"%s\", %d, %d, %s);\n", s->nome, s->nome, s->porta, s->tipo == TIPO_DIGITAL, expressao);
     }
     return juntar("%s = %s;\n", nome, expressao);
 }
@@ -88,9 +88,7 @@ int gerar_arquivo(const char *nome_arquivo, const char *corpo) {
     fprintf(saida, "#include <stdio.h>\n\n");
 
     for (s = ts_primeiro(); s != NULL; s = s->prox) {
-        if (s->categoria == CAT_VARIAVEL) {
-            fprintf(saida, "int %s = 0;\n", s->nome);
-        }
+        fprintf(saida, "int %s = 0;\n", s->nome);
     }
 
     fprintf(saida, "\n");
@@ -103,16 +101,27 @@ int gerar_arquivo(const char *nome_arquivo, const char *corpo) {
     fprintf(saida, "    return valor;\n");
     fprintf(saida, "}\n\n");
 
-    fprintf(saida, "int ler_sensor(const char *nome, int porta) {\n");
+    fprintf(saida, "int ler_sensor(int *sensor, const char *nome, int porta, int digital) {\n");
     fprintf(saida, "    int valor;\n");
-    fprintf(saida, "    printf(\"[sensor %%s | porta %%d] valor lido: \", nome, porta);\n");
-    fprintf(saida, "    if (scanf(\"%%d\", &valor) != 1) {\n");
-    fprintf(saida, "        valor = 0;\n");
-    fprintf(saida, "    }\n");
+    fprintf(saida, "    do {\n");
+    fprintf(saida, "        printf(\"[sensor %%s | porta %%d] valor lido: \", nome, porta);\n");
+    fprintf(saida, "        if (scanf(\"%%d\", &valor) != 1) {\n");
+    fprintf(saida, "            valor = 0;\n");
+    fprintf(saida, "        }\n");
+    fprintf(saida, "        if (digital && valor != 0 && valor != 1) {\n");
+    fprintf(saida, "            printf(\"Sensor digital: informe 0 ou 1.\\n\");\n");
+    fprintf(saida, "        }\n");
+    fprintf(saida, "    } while (digital && valor != 0 && valor != 1);\n");
+    fprintf(saida, "    *sensor = valor;\n");
     fprintf(saida, "    return valor;\n");
     fprintf(saida, "}\n\n");
 
-    fprintf(saida, "void acionar_atuador(const char *nome, int porta, int valor) {\n");
+    fprintf(saida, "void acionar_atuador(int *atuador, const char *nome, int porta, int digital, int valor) {\n");
+    fprintf(saida, "    if (digital && valor != 0 && valor != 1) {\n");
+    fprintf(saida, "        printf(\"[aviso] atuador digital %%s recebeu %%d e foi ajustado para 1\\n\", nome, valor);\n");
+    fprintf(saida, "        valor = 1;\n");
+    fprintf(saida, "    }\n");
+    fprintf(saida, "    *atuador = valor;\n");
     fprintf(saida, "    printf(\"[atuador %%s | porta %%d] <- %%d\\n\", nome, porta, valor);\n");
     fprintf(saida, "}\n\n");
 
