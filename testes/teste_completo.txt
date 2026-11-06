@@ -1,0 +1,24 @@
+sensor temperatura: analogico(porta 1), presenca: digital(porta 2).
+atuador ar_condicionado: digital(porta 3), luz: analogico(porta 4).
+
+ler(limite).
+contador <- 0.
+enquanto (contador < 3)
+    se temperatura >= limite entao
+        ar_condicionado <- 1.
+        se presenca == 1 entao
+            luz <- 100.
+        senao
+            luz <- 10.
+        fim_se.
+    senao
+        ar_condicionado <- 0.
+        luz <- 0.
+    fim_se.
+    contador <- contador + 1.
+fim_enquanto.
+
+resultado <- 2 + 3 * 4 - (10 - 6) / 2.
+se (resultado != 12) entao escrever(0). senao escrever(resultado). fim_se.
+se resultado <= 12 entao escrever(1). fim_se.
+se ((resultado > 0)) entao escrever(contador * 10). fim_se.
