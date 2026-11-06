@@ -1,8 +1,8 @@
-
 %{
 #include <stdio.h>
 #include <string.h>
 #include "tabela.h"
+#include "gerador.h"
 
 int yylex(void);
 void yyerror(const char *msg);
@@ -13,6 +13,7 @@ extern int erros_lexicos;
 
 int erros_sintaticos = 0;
 int erros_semanticos = 0;
+char *corpo_programa = NULL;
 
 static const char *nome_categoria(Categoria c) {
     if (c == CAT_SENSOR) return "sensor";
@@ -65,6 +66,7 @@ static void usar(const char *nome, int linha) {
 %union {
     int numero;
     char *texto;
+    char *codigo;
 }
 
 %locations
@@ -84,14 +86,16 @@ static void usar(const char *nome, int linha) {
 %token <texto> IDENTIFICADOR "identificador"
 
 %type <numero> tipo_sensor_atuador
+%type <codigo> bloco comando comando_se comando_enquanto comando_atribuicao comando_leitura comando_escrita
+%type <codigo> expressao soma termo multi fator
 
 %start programa
 
 %%
 
 programa
-    : declaracao_lista bloco
-    | bloco
+    : declaracao_lista bloco { corpo_programa = $2; }
+    | bloco                  { corpo_programa = $1; }
     ;
 
 declaracao_lista
@@ -138,8 +142,8 @@ atuador
     ;
 
 bloco
-    : bloco comando PONTO
-    | comando PONTO
+    : bloco comando PONTO { $$ = juntar("%s%s", $1, $2); }
+    | comando PONTO       { $$ = $1; }
     ;
 
 comando
@@ -151,26 +155,33 @@ comando
     ;
 
 comando_se
-    : SE expressao_logica ENTAO bloco FIM_SE
-    | SE expressao_logica ENTAO bloco SENAO bloco FIM_SE
+    : SE expressao_logica ENTAO bloco FIM_SE                 { $$ = juntar(""); }
+    | SE expressao_logica ENTAO bloco SENAO bloco FIM_SE     { $$ = juntar(""); }
     ;
 
 comando_enquanto
-    : ENQUANTO ABRE_PAR expressao_logica FECHA_PAR bloco FIM_ENQUANTO
+    : ENQUANTO ABRE_PAR expressao_logica FECHA_PAR bloco FIM_ENQUANTO   { $$ = juntar(""); }
     ;
 
 comando_atribuicao
     : IDENTIFICADOR ATRIBUICAO expressao
-        { atribuir($1, @1.first_line); }
+        {
+            atribuir($1, @1.first_line);
+            $$ = codigo_atribuicao($1, $3);
+        }
     ;
 
 comando_leitura
     : LER ABRE_PAR IDENTIFICADOR FECHA_PAR
-        { atribuir($3, @3.first_line); }
+        {
+            atribuir($3, @3.first_line);
+            $$ = juntar("%s = ler_inteiro(\"%s\");\n", $3, $3);
+        }
     ;
 
 comando_escrita
     : ESCREVER ABRE_PAR expressao FECHA_PAR
+        { $$ = juntar("printf(\"%%d\\n\", %s);\n", $3); }
     ;
 
 expressao_logica
@@ -188,29 +199,33 @@ op_relacional
     ;
 
 expressao
-    : expressao soma termo
-    | termo
+    : expressao soma termo { $$ = juntar("%s %s %s", $1, $2, $3); }
+    | termo                { $$ = $1; }
     ;
 
 soma
-    : MAIS
-    | MENOS
+    : MAIS  { $$ = juntar("+"); }
+    | MENOS { $$ = juntar("-"); }
     ;
 
 termo
-    : termo multi fator
-    | fator
+    : termo multi fator { $$ = juntar("%s %s %s", $1, $2, $3); }
+    | fator             { $$ = $1; }
     ;
 
 multi
-    : VEZES
-    | DIVIDIDO
+    : VEZES    { $$ = juntar("*"); }
+    | DIVIDIDO { $$ = juntar("/"); }
     ;
 
 fator
-    : ABRE_PAR expressao FECHA_PAR
-    | IDENTIFICADOR { usar($1, @1.first_line); }
-    | NUMERO
+    : ABRE_PAR expressao FECHA_PAR { $$ = juntar("(%s)", $2); }
+    | IDENTIFICADOR
+        {
+            usar($1, @1.first_line);
+            $$ = codigo_identificador($1);
+        }
+    | NUMERO { $$ = juntar("%d", $1); }
     ;
 
 %%
@@ -278,6 +293,9 @@ int main(int argc, char **argv) {
 
     if (resultado == 0 && erros_lexicos == 0 && erros_semanticos == 0) {
         printf("Analise concluida: o programa esta correto.\n");
+        if (gerar_arquivo("saida.c", corpo_programa)) {
+            printf("Codigo C gerado em saida.c\n");
+        }
         return 0;
     }
     printf("Analise NAO concluida: o programa tem erros.\n");
