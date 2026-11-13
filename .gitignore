@@ -9,3 +9,7 @@ parser.tab.h
 # codigo C gerado pelo transpilador
 saida.c
 *.out
+
+
+# documentacao
+README.md
